@@ -1,0 +1,137 @@
+__author__ = "Celine Prakash"
+__version__ = "0.1.0"
+__license__ = "MIT"
+
+from snakemake.utils import min_version
+
+min_version("6.4")
+
+# config file
+configfile: "config/config.yaml"
+
+import pandas as pd
+
+absolute_path = config["abs_path"]
+sample_metadata = config["sample_metadata"]  # path to sample_metadata
+# [ ] - add checks for correct format, schema
+samples = pd.read_csv(
+    sample_metadata, sep=",", dtype={"sample_name": str, "fastq_R1": str, "fastq_R2": str}
+).set_index("sample_name", drop=False)
+
+# including rules
+include: "rules/common.smk"    # common functions
+
+#### Start of pipeline ####
+rule all:
+    input:
+        expand("results/reports/{sample}_fastp.html", sample=samples.index),
+        expand("results/reports/{sample}_fastp.json", sample=samples.index),
+        expand("results/data_processed/fastq_trimmed/{sample}_R1_trimmed.fastq.gz", sample=samples.index),
+        expand("results/data_processed/fastq_trimmed/{sample}_R2_trimmed.fastq.gz", sample=samples.index),
+        expand("results/data_processed/star_aligned/{sample}_star_aligned.bam", sample=samples.index),
+        expand("results/data_processed/star_aligned/{sample}_star_aligned.bam.bai", sample=samples.index),
+        expand("results/expression/salmon_quant/{sample}_quant/quant.sf", sample=samples.index)
+
+
+rule QC_fastp:
+    """
+    QC module: fastp - https://github.com/OpenGene/fastp
+    """
+    input:
+        fq_R1 = lambda wildcards : fq_input(wildcards, abs_path = absolute_path, column_name='fastq_R1'),
+        fq_R2 = lambda wildcards : fq_input(wildcards, abs_path = absolute_path, column_name='fastq_R2')
+    output:
+        fq_R1_trimmed="results/data_processed/fastq_trimmed/{sample}_R1_trimmed.fastq.gz",
+        fq_R2_trimmed="results/data_processed/fastq_trimmed/{sample}_R2_trimmed.fastq.gz",
+        html_out="results/reports/{sample}_fastp.html",
+        json_out="results/reports/{sample}_fastp.json"
+    log:
+        "logs/trimming/QC_fastp.{sample}.log",
+    threads: 2
+    container: config["core_container"]
+    params:
+        fastp_params=config["fastp_params"],
+    shell:
+        """
+        fastp --thread {threads} \
+            --html {output.html_out} \
+            --json {output.json_out} \
+            --in1 {input.fq_R1} \
+            --in2 {input.fq_R2} \
+            --out1 {output.fq_R1_trimmed} \
+            --out2 {output.fq_R2_trimmed} \
+            {params.fastp_params} 2> {log}
+        """
+
+rule star_align:
+    """
+    Run STAR aligner
+    """
+    input:
+        fq_R1_trimmed="results/data_processed/fastq_trimmed/{sample}_R1_trimmed.fastq.gz",
+        fq_R2_trimmed="results/data_processed/fastq_trimmed/{sample}_R2_trimmed.fastq.gz",
+    output:
+        star_aligned_bam="results/data_processed/star_aligned/{sample}_star_aligned.bam",
+        star_aligned_bai="results/data_processed/star_aligned/{sample}_star_aligned.bam.bai"
+    log:
+        star_align="logs/star_align/star_align.{sample}.log",
+        star_sort="logs/star_align/star_sort.{sample}.log",
+        star_index="logs/star_align/star_index.{sample}.log"
+    threads: 4
+    container: config["core_container"]
+    params:
+        outdir=lambda wildcards, output: os.path.dirname(output[0]),
+        star_prefix="{sample}_star", # "{sample}_star_unsort"
+        star_RG_line="--outSAMattrRGline ID:{wildcards.sample} SM:{wildcards.sample}", #config["star_RG_line"] ! some issues with quotes - check what outSAMattrRGline accepts
+        star_parameters=config["star_parameters"],
+        #star_temp_dir=config["star_tmp_dir"]
+        star_index=config["star_index"],
+        gtf_file=config["reference_gene_annotations"]
+    shell:
+        """
+        STAR --runMode alignReads \
+            --readFilesCommand zcat \
+            --readFilesIn {input.fq_R1_trimmed} {input.fq_R2_trimmed} \
+            --outFileNamePrefix "{params.outdir}/{params.star_prefix}" \
+            --genomeDir {params.star_index} \
+            --sjdbGTFfile {params.gtf_file} \
+            --runThreadN {threads} \
+            --outSAMattrRGline ID:{wildcards.sample} SM:{wildcards.sample} \
+            {params.star_parameters} 2> {log.star_align}
+
+        samtools view -b "{params.outdir}/{params.star_prefix}Aligned.out.sam" | \
+         samtools sort -o {output.star_aligned_bam} -@ {threads} 2> {log.star_sort}
+        samtools index {output.star_aligned_bam} 2> {log.star_index}
+        rm "{params.outdir}/{params.star_prefix}Aligned.out.sam"
+        """
+
+rule salmon_quant:
+    """
+    Run salmon quantification
+     # library type --libType A (auto)
+    """
+    input:
+        fq_R1_trimmed="results/data_processed/fastq_trimmed/{sample}_R1_trimmed.fastq.gz",
+        fq_R2_trimmed="results/data_processed/fastq_trimmed/{sample}_R2_trimmed.fastq.gz",
+        salmon_index=config["salmon_index"],
+    output:
+        salmon_quant_dir=directory("results/expression/salmon_quant/{sample}_quant"),
+        salmon_quant_sf="results/expression/salmon_quant/{sample}_quant/quant.sf",
+        salmon_quant_log="results/expression/salmon_quant/{sample}_quant/logs/salmon_quant.log",
+    log:
+        "logs/salmon_quant/salmon_quant.{sample}.log",
+    threads: 2
+    container: config["expression_container"]
+    params:
+        library_type=config["salmon_library_type"],
+        salmon_parameters=config["salmon_parameters"]
+    shell:
+        """
+        salmon quant \
+            --threads {threads} \
+            -i {input.salmon_index} \
+            --libType {params.library_type} \
+            -1 {input.fq_R1_trimmed} \
+            -2 {input.fq_R2_trimmed} \
+            -o {output.salmon_quant_dir} 2> {log}
+        """

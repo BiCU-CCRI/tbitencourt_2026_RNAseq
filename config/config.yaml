@@ -1,0 +1,27 @@
+sample_metadata: "metadata/sample_table.csv"  # path to sample_table that contains info about samples and corresponding fastq files
+abs_path: "NGS_CaKp/"  # path to directory containing fastq files
+
+# References
+reference_fasta_file: "reference/GCF_000182965.3_ASM18296v3__GCF_000016305.1_ASM1630v1_genomic.fna"
+reference_gene_annotations: "reference/GCF_000182965.3_ASM18296v3__GCF_000016305.1_ASM1630v1_genomic.gtf"
+star_index: "reference/STAR_index_149bp"  # please note index is for 150bp reads!
+
+# Parameters
+star_parameters: "--outStd BAM_Unsorted \
+--outSAMunmapped Within \
+--outBAMcompression 0 \
+--outFilterMultimapNmax 20 \
+--peOverlapNbasesMin 10 "
+
+## Fastp
+fastp_params: "--length_required 20"
+
+## Salmon
+salmon_index: "reference/salmon_index/GCF_000182965.3_ASM18296v3__GCF_000016305.1_ASM1630v1_cds_and_genomic_k31"
+salmon_library_type: "A" #  for automatically infer the library type; preferred to specify or check if inferred matched rna-seq library preparation
+salmon_parameters: "--no-version-check --validateMappings --seqBias --gcBias --biasSpeedSamp 5"
+
+# Singularity/Apptainer containers (see envs/README.md for how to build these .sif files
+# from the public Docker Hub images ccribioinf/rnaseq_core:v1.0 and ccribioinf/rnaseq_expression:v1.0)
+core_container: "envs/rnaseq_core_v1.0.sif"
+expression_container: "envs/rnaseq_expression_v1.0.sif"

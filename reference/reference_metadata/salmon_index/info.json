@@ -1,0 +1,22 @@
+{
+    "index_version": 4,
+    "reference_gfa": [
+        "reference/salmon_index/GCF_000182965.3_ASM18296v3__GCF_000016305.1_ASM1630v1_cds_and_genomic_k31"
+    ],
+    "sampling_type": "dense",
+    "k": 31,
+    "num_kmers": 19602097,
+    "num_contigs": 38314,
+    "seq_length": 20751517,
+    "have_ref_seq": true,
+    "have_edge_vec": false,
+    "SeqHash": "f10eb0891d2072d74e315d12aeaa010611d622c6c81775d354aba1a1cda5f66b",
+    "NameHash": "0066e6aa457d06481943e41f617c075062270c80b5cec996990f94132c995e84",
+    "SeqHash512": "569db7cf450647ee3885f5c195cb5201f689e0ef1740999a29b8924b94dc4c2c5e26eceab0c88ac57c8759a491258d9af5c20e9e20e6175437ef322aaaaa5c1b",
+    "NameHash512": "9c783d957f0adcf68175f48760dc7206ca9bc95315f2d02b14789fab1c2b4ffaa5ec0ee8e6a68ffd3cf880f634fb0caa79ec434f3a05f5f6e5145ea820c477c9",
+    "DecoySeqHash": "7a1788907f8a715bf0ec87a761cb2bdd76afc9caf1e2e94a881c4f448d283569",
+    "DecoyNameHash": "1a780e2ab7540f2cac9466fdeb164f9d06629f6036fe18ba7608fd2b25c3baf4",
+    "num_decoys": 14,
+    "first_decoy_index": 11433,
+    "keep_duplicates": false
+}

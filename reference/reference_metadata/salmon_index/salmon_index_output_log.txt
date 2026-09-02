@@ -1,0 +1,39 @@
+(base) celine_p@011SV157:/scratch/research/bicu/celine_p/wkdirs/tbitencourt_RNAseq$ export salmonindexdir="reference/salmon_index"
+(base) celine_p@011SV157:/scratch/research/bicu/celine_p/wkdirs/tbitencourt_RNAseq$ mkdir $salmonindexdir
+mkdir: cannot create directory 'reference/salmon_index': File exists
+(base) celine_p@011SV157:/scratch/research/bicu/celine_p/wkdirs/tbitencourt_RNAseq$ export kmer="31"
+<kdirs/tbitencourt_RNAseq$ export salmonindex="reference/salmon_index/GCF_000182965.3_ASM18296v3__GCF_000016305.1_ASM1630v1_cds_and_genomic_k${kmer}"
+<kdirs/tbitencourt_RNAseq$ export transcriptsfa="reference/GCF_000182965.3_ASM18296v3__GCF_000016305.1_ASM1630v1_cds_and_genomic.fna"
+<kdirs/tbitencourt_RNAseq$ singularity exec --bind $(pwd) /home/celine_p/bioinf_isilon/core_bioinformatics_unit/Public/singularity_images/rnaseq_expression_v1.0.sif \
+> salmon index --threads 4 \
+> --transcripts ${transcriptsfa} \
+> --index ${salmonindex} \
+> --kmerLen ${kmer} \
+> --decoys reference/decoys.txt 2> reference/salmon_index_log.txt
+Threads = 4
+Vertex length = 31
+Hash functions = 5
+Filter size = 536870912
+Capacity = 2
+Files:
+reference/salmon_index/GCF_000182965.3_ASM18296v3__GCF_000016305.1_ASM1630v1_cds_and_genomic_k31/ref_k31_fixed.fa
+--------------------------------------------------------------------------------
+Round 0, 0:536870912
+Pass    Filling Filtering
+1       4       8
+2       1       0
+True junctions count = 32510
+False junctions count = 30253
+Hash table size = 62763
+Candidate marks count = 146681
+--------------------------------------------------------------------------------
+Reallocating bifurcations time: 0
+True marks count: 91692
+Edges construction time: 1
+--------------------------------------------------------------------------------
+Distinct junctions = 32510
+
+for info, total work write each  : 2.331    total work inram from level 3 : 4.322  total work raw : 25.000
+Bitarray       102714304  bits (100.00 %)   (array + ranks )
+final hash             0  bits (0.00 %) (nb in final hash 0)
+(base) celine_p@011SV157:/scratch/research/bicu/celine_p/wkdirs/tbitencourt_RNAseq$

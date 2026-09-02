@@ -1,0 +1,3 @@
+Organism Scientific Name	Organism Common Name	Organism Qualifier	Taxonomy id	Assembly Name	Assembly Accession	Source	Annotation	Level	Contig N50	Size	Submission Date	Gene Count	BioProject	BioSample
+Klebsiella pneumoniae subsp. pneumoniae MGH 78578		strain: ATCC 700721; MGH 78578	272620	ASM1630v1	GCA_000016305.1	GenBank	Annotation submitted by The Klebsiella pneumoniae Genome Sequencing Project	Complete Genome	5315120	5694894	2007-07-05	5305	PRJNA31	SAMN02603941
+Klebsiella pneumoniae subsp. pneumoniae MGH 78578		strain: ATCC 700721; MGH 78578	272620	ASM1630v1	GCF_000016305.1	RefSeq	NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	5315120	5694894	2007-07-05	5589	PRJNA31	SAMN02603941
